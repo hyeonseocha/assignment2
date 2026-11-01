@@ -1,3 +1,10 @@
+# Step 8 first: Track B as it is, so a submission exists no matter what happens
+# to the runs after it. The queue stops at the first run that fails, so the one
+# thing that must exist goes first. --no-val skips scoring the 12k validation
+# photos again on Colab's CPU (about 7 minutes); train_b.py already printed it.
+python src/train_b.py --tag trackb_base --submit
+python src/check_submission.py --no-val
+
 # Step 6, change 1: less zoom in the training crops. The grader resizes the
 # shorter side and takes the middle square without zooming (rules.grader_input),
 # so scale 0.35 (up to 1.7x zoom) threw away the street context that tells the
