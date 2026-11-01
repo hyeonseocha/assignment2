@@ -68,3 +68,23 @@ opinion — I ran a count to check what I saw):
 - Taipei is only 14% youtube frames; Seoul is 37%.
 - So a city can also be told apart by the camera it was shot on, which is not
   what the grader wants the model to learn.
+
+## 1 November baseline seed 0 (Track A)
+- changed: nothing; the starter recipe, on all 44,257 training photos
+- why: <!-- me -->
+- validation: 0.497 (before: none, this is the first run)
+- what it means: <!-- me -->
+
+## 1 November baseline seed 1 (Track A)
+- changed: nothing; the same recipe again, only the seed is different
+- why: <!-- me -->
+- validation: 0.491 (before: 0.497 with seed 0)
+- what it means: <!-- me -->
+
+### What the baseline's mistakes have in common (my own words)
+
+I looked at all five sheets, `results/curate/mistakes_baseline_seed0_<city>_00.png`
+(48 photos each, the ones the model was most sure about and still got wrong).
+
+- 이 도시에만 있는 것이 보이면 맞히는데, 어디에나 있는 도로·낮은 건물(7층 이하)·인도 뷰만 보이면 구분을 못한다. 서울↔부산이 특히 그렇고, 도쿄↔오사카도 거리·인도 뷰에서 헷갈리며, 타이베이도 그냥 번화가 길거리면 헷갈린다.
+- 확대(줌)된 사진, 즉 길 전체가 아니라 일부만 크게 보이는 사진도 구분을 못한다.
