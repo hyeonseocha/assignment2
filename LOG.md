@@ -48,10 +48,10 @@ file name under each photo). My own notes, in my own words:
 - 회색이 많은 느낌, 후지산, 길에 주차된 차나 자전거 같은 게 없음, 좌측 통행, 높은 건물이 많음
 
 **What surprised me**
-- 
+- 도쿄와 오사카는 차가 왼쪽으로 다니고 서울·부산은 오른쪽이라, 사진을 좌우로 뒤집으면 도시를 가르는 단서가 사라질 수도 있겠다
 
 **A rule I want to try from this**
--
+- 부산 시트의 앵무새·차량 전시 사진, 오사카 시트의 꽃·인형·마네킹처럼 길 사진이 아닌 것은 학습에서 빼본다
 
 Counts in the training folder (measured from `data/starter/train`, not an
 opinion — I ran a count to check what I saw):
