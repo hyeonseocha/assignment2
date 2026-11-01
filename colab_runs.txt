@@ -1,0 +1,3 @@
+# Step 2: the starter recipe, twice, so we can see how much the score moves by chance.
+python src/official.py --tag baseline --seed 0
+python src/official.py --tag baseline --seed 1
