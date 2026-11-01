@@ -1,8 +1,5 @@
-# Step 2: the starter recipe, twice, so we can see how much the score moves by chance.
-python src/official.py --tag baseline --seed 0
-python src/official.py --tag baseline --seed 1
-
-# Step 3: the validation photos the baseline gets wrong most confidently, as
-# numbered sheets I can look at. Runs on Colab because the trained model stays
-# there; the sheets come back inside from_colab.zip.
-python src/curate.py mistakes results/baseline_seed0/model.onnx
+# Step 6, change 1: less zoom in the training crops. The grader resizes the
+# shorter side and takes the middle square without zooming (rules.grader_input),
+# so scale 0.35 (up to 1.7x zoom) threw away the street context that tells the
+# cities apart. scale 0.6 keeps at least 60% of the photo. Nothing else changed.
+python src/official.py --tag wide_crop
