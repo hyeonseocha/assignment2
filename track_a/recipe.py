@@ -33,7 +33,11 @@ def train_transform():
     photo is drawn, so the same photo looks different every time.
     """
     return T.Compose([
-        T.RandomResizedCrop(224, scale=(0.35, 1.0)),
+        # The grader never zooms in: it resizes the shorter side and cuts out the
+        # middle square (rules.grader_input). Cropping away up to 65% of the photo
+        # (scale 0.35) made training look unlike the test photos, so the crops now
+        # keep at least 60% of the area. Nothing else in the recipe changed.
+        T.RandomResizedCrop(224, scale=(0.6, 1.0)),
         T.RandomHorizontalFlip(),
         T.ColorJitter(0.2, 0.2, 0.2),
     ])
