@@ -1,12 +1,6 @@
-# Step 8 first: Track B as it is, so a submission exists no matter what happens
-# to the runs after it. The queue stops at the first run that fails, so the one
-# thing that must exist goes first. --no-val skips scoring the 12k validation
-# photos again on Colab's CPU (about 7 minutes); train_b.py already printed it.
-python src/train_b.py --tag trackb_base --submit
-python src/check_submission.py --no-val
-
-# Step 6, change 1: less zoom in the training crops. The grader resizes the
-# shorter side and takes the middle square without zooming (rules.grader_input),
-# so scale 0.35 (up to 1.7x zoom) threw away the street context that tells the
-# cities apart. scale 0.6 keeps at least 60% of the photo. Nothing else changed.
-python src/official.py --tag wide_crop
+# Step 6, change 2: no left-right flips. The crop is back to the starter's 0.35
+# because wide_crop did not help, so this run differs from the baseline in one
+# thing only. The flips were removed because the traffic side and the writing
+# direction are what tells the two pairs of cities apart, and a mirrored photo
+# gets both of them wrong.
+python src/official.py --tag no_flip

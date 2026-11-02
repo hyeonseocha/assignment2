@@ -33,12 +33,15 @@ def train_transform():
     photo is drawn, so the same photo looks different every time.
     """
     return T.Compose([
-        # The grader never zooms in: it resizes the shorter side and cuts out the
-        # middle square (rules.grader_input). Cropping away up to 65% of the photo
-        # (scale 0.35) made training look unlike the test photos, so the crops now
-        # keep at least 60% of the area. Nothing else in the recipe changed.
-        T.RandomResizedCrop(224, scale=(0.6, 1.0)),
-        T.RandomHorizontalFlip(),
+        # Back to the starter crop: keeping at least 60% of the photo (scale 0.6)
+        # did not help (0.490 against 0.494 for the starter), so the crop is the
+        # starter's again and only one thing is different from the starter here.
+        T.RandomResizedCrop(224, scale=(0.35, 1.0)),
+        # No left-right flips any more. Seoul and Busan drive on the right and
+        # Tokyo and Osaka on the left, and the Korean and Japanese writing runs
+        # in a fixed direction, so a mirror image shows a scene that cannot exist
+        # in that city. Flipping every photo hid exactly the cue that tells the
+        # two pairs apart.
         T.ColorJitter(0.2, 0.2, 0.2),
     ])
 
