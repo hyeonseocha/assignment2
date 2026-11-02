@@ -71,15 +71,20 @@ opinion — I ran a count to check what I saw):
 
 ## 1 November baseline seed 0 (Track A)
 - changed: nothing; the starter recipe, on all 44,257 training photos
-- why: <!-- me -->
+- why: 내가 앞으로 바꾸는 것들이 정말 나아진 건지 비교할 기준이 필요해서.
 - validation: 0.497 (before: none, this is the first run)
-- what it means: <!-- me -->
+- what it means: 오사카와 도쿄를 이렇게 많이 헷갈릴 줄은 몰랐다. 내가 봐도 오사카인지
+  도쿄인지 구분이 안 되는 사진이 많았다.
 
 ## 1 November baseline seed 1 (Track A)
 - changed: nothing; the same recipe again, only the seed is different
-- why: <!-- me -->
+- why: 점수가 그냥 우연으로 나온 건지 궁금했고, 한 번 더 돌려서 확실히 해보고
+  싶었다.
 - validation: 0.491 (before: 0.497 with seed 0)
-- what it means: <!-- me -->
+- what it means: 도쿄와 오사카 점수가 seed에 따라 0.03씩 서로 뒤집힌 걸 보면
+  0.4965와 0.4913의 차이는 우연이라고 본다. 앞으로는 노이즈 범위를 벗어나는
+  **전체 점수 0.015 이상 상승**이 있거나, 오사카·부산처럼 약한 도시의 점수가
+  **0.03 이상 안정적으로** 올랐을 때 "성능이 좋아졌다"고 말하겠다.
 
 ### What the baseline's mistakes have in common (my own words)
 
