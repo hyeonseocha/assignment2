@@ -1,6 +1,5 @@
-# Step 6, change 3: mixup. The crop stays at the starter's 0.35 and the
-# left-right flip stays out, so this run differs from no_flip in one thing only.
-# no_flip lowered the training loss without moving the validation score, so the
-# next thing to try is regularization: blend pairs of training photos and their
-# city probabilities, so the model cannot simply memorise each photo.
-python src/official.py --tag mixup
+# Step 7: the sheets of photos the best model was sure about and still got
+# wrong, so the photos to drop can be chosen by looking at them. The models
+# stay on the Colab drive, so this has to run there. --every 4 uses every
+# fourth training photo: every photo takes almost half an hour on two cores.
+python src/curate.py suspects results/baseline_seed0/model.onnx --every 4
