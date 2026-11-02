@@ -18,6 +18,8 @@ This is the recipe the starter code came with. It is the baseline on the
 leaderboard.
 """
 
+import random
+
 import torch
 import torch.nn.functional as F
 from torchvision import transforms as T
@@ -73,8 +75,20 @@ def mix(images, labels):
     images is (BATCH_SIZE, 3, 224, 224), normalised; labels is (BATCH_SIZE,)
     city numbers. Return images of the same shape and the targets for
     loss_fn: the labels, or probabilities (BATCH_SIZE, 5) if you mix photos.
+
+    Mixup: every photo is blended with another photo of the same batch, so the
+    model sees fewer of the same street twice and cannot just memorise the
+    training photos. That is the one thing this recipe changes from `no_flip`,
+    where the training loss fell but the validation score did not follow.
     """
-    return images, labels
+    alpha = 0.2
+    lam = random.betavariate(alpha, alpha)
+    lam = max(lam, 1.0 - lam)  # the photo keeps the larger share of itself
+    other = torch.randperm(images.size(0), device=images.device)
+    images = lam * images + (1.0 - lam) * images[other]
+    targets = (lam * F.one_hot(labels, 5).float()
+               + (1.0 - lam) * F.one_hot(labels[other], 5).float())
+    return images, targets
 
 
 def loss_fn(logits, targets):
