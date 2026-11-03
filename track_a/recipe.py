@@ -18,8 +18,6 @@ This is the recipe the starter code came with. It is the baseline on the
 leaderboard.
 """
 
-import random
-
 import torch
 import torch.nn.functional as F
 from torchvision import transforms as T
@@ -35,15 +33,8 @@ def train_transform():
     photo is drawn, so the same photo looks different every time.
     """
     return T.Compose([
-        # Back to the starter crop: keeping at least 60% of the photo (scale 0.6)
-        # did not help (0.490 against 0.494 for the starter), so the crop is the
-        # starter's again and only one thing is different from the starter here.
         T.RandomResizedCrop(224, scale=(0.35, 1.0)),
-        # No left-right flips any more. Seoul and Busan drive on the right and
-        # Tokyo and Osaka on the left, and the Korean and Japanese writing runs
-        # in a fixed direction, so a mirror image shows a scene that cannot exist
-        # in that city. Flipping every photo hid exactly the cue that tells the
-        # two pairs apart.
+        T.RandomHorizontalFlip(),
         T.ColorJitter(0.2, 0.2, 0.2),
     ])
 
@@ -75,20 +66,8 @@ def mix(images, labels):
     images is (BATCH_SIZE, 3, 224, 224), normalised; labels is (BATCH_SIZE,)
     city numbers. Return images of the same shape and the targets for
     loss_fn: the labels, or probabilities (BATCH_SIZE, 5) if you mix photos.
-
-    Mixup: every photo is blended with another photo of the same batch, so the
-    model sees fewer of the same street twice and cannot just memorise the
-    training photos. That is the one thing this recipe changes from `no_flip`,
-    where the training loss fell but the validation score did not follow.
     """
-    alpha = 0.2
-    lam = random.betavariate(alpha, alpha)
-    lam = max(lam, 1.0 - lam)  # the photo keeps the larger share of itself
-    other = torch.randperm(images.size(0), device=images.device)
-    images = lam * images + (1.0 - lam) * images[other]
-    targets = (lam * F.one_hot(labels, 5).float()
-               + (1.0 - lam) * F.one_hot(labels[other], 5).float())
-    return images, targets
+    return images, labels
 
 
 def loss_fn(logits, targets):
