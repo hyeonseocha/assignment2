@@ -1,5 +1,8 @@
-# Step 7: the sheets of photos the best model was sure about and still got
-# wrong, so the photos to drop can be chosen by looking at them. The models
-# stay on the Colab drive, so this has to run there. --every 4 uses every
-# fourth training photo: every photo takes almost half an hour on two cores.
-python src/curate.py suspects results/baseline_seed0/model.onnx --every 4
+# Step 9, Track B change 1. The starter model was ResNet18 at 224: 11.2 million
+# parameters and 1.81 billion multiply-adds, so it spent almost the whole
+# allowance and had no room left for a bigger image. MobileNetV3-Large at 320 is
+# 4.18 million parameters and 0.437 billion multiply-adds, measured with
+# rules.measure_onnx, so the photos can be larger. Nothing else changes: same
+# starter photos, same 4 epochs, same learning rate, same batch size.
+python src/train_b.py --tag b_mnv3_320 --model mobilenet_v3_large --size 320 --submit
+python src/check_submission.py --no-val
