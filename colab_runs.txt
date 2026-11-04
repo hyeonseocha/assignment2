@@ -1,9 +1,8 @@
-# Track A change 4: the recipe is the starter recipe again, with one change.
-# The score is the accuracy in each city averaged over the five cities, so each
-# city is worth a fifth of the score, but the photos are not: Tokyo has 13,310
-# of them and Busan 5,174, so drawn in proportion Tokyo comes up nearly three
-# times as often as Busan. sample_weights now gives each photo 1/(number of
-# photos of its city), so every city comes up equally often: Busan 1.7 times as
-# often as now, Tokyo 0.7 times. Selection is the curated one from track-a-3
-# (0.5038 here, 0.395 on the leaderboard, against the starter 0.401).
-python src/official.py --tag balanced
+# Track A change 5: change 4 (drawing every city equally often) measured 0.5032
+# against 0.5038 for the curated selection with the starter recipe, so it is
+# reverted and the sampling is the starter's again. The one change now is
+# BATCH_SIZE 32 instead of 64. The budget is 250,000 photos either way, so the
+# same photos are seen, but 32 means 7,812 steps instead of 3,906: the weights
+# are updated twice as often. The training loss was still falling at the end of
+# the 39-minute run (1.428 -> 0.767), so the model had not finished learning.
+python src/official.py --tag batch32
