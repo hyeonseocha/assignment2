@@ -14,15 +14,25 @@ What you cannot change, because official.py decides it:
   - the image size the model sees, 224 x 224
   - mixed precision (float16), and the seed
 
-This is the recipe the starter code came with, with one change: the photos
-are drawn so that every city comes up equally often (sample_weights below).
-The score is the accuracy in each city averaged over the five cities, so every
-city is worth a fifth, but the photos are not: Tokyo has 13,310 and Busan
-5,174, so drawn in proportion Tokyo comes up nearly three times as often as
-Busan. This makes the two match.
+This is the recipe the starter code came with, with one change to how the
+photos are drawn (sample_weights below), made in two steps. The score is the
+accuracy in each city averaged over the five cities, so every city is worth a
+fifth, but the photos are not: Tokyo has 13,310 of them and Busan 5,174, so
+drawn in proportion Tokyo comes up nearly three times as often as Busan. The
+first step is that every city is now drawn equally often. The second step is
+that, inside a city, the three kinds of photo (commons, youtube, osv5m) are
+drawn more evenly than they occur. Busan has no osv5m photo at all and Seoul
+only 320, while Tokyo has 1,916, so the kind of photo alone says a lot about
+the city, and the leaderboard photos are not mixed the same way: there Busan
+and Taipei are close to guessing (0.19 and 0.22) while on our own validation
+photos they are 0.40 and 0.54. The second step is done by halves, one over the
+square root of the count: drawing Seoul's 320 street-view photos a third of the
+time would repeat each of them 52 times in 250,000 draws, while by halves they
+come up about 4.6 times as often as Seoul's commons photos instead of 21 times.
 """
 
 import collections
+import math
 
 import torch
 import torch.nn.functional as F
@@ -45,6 +55,11 @@ def train_transform():
     ])
 
 
+def _kind(path):
+    """commons, osv5m or youtube: where the photo came from, from its file name."""
+    return path.replace("\\", "/").split("/")[-1].split("_")[0]
+
+
 def sample_weights(cities, paths):
     """How often each photo in your selection is drawn.
 
@@ -52,9 +67,20 @@ def sample_weights(cities, paths):
     list of positive numbers of the same length, where a photo with weight 2
     is drawn twice as often as one with weight 1. Return None to go through
     the selection in a new random order each time, every photo once per round.
+
+    Every city comes up equally often, and inside a city a photo is drawn one
+    over the square root of the number of photos of its kind in that city: the
+    city's photos add up to one however many kinds it has, and a rare kind is
+    drawn more often than it occurs, but only by the square root.
     """
-    counts = collections.Counter(cities)
-    return [1.0 / counts[c] for c in cities]
+    kinds = collections.Counter((c, _kind(p)) for c, p in zip(cities, paths))
+    spread = collections.Counter()
+    for (c, kind), n in kinds.items():
+        spread[c] += math.sqrt(n)
+    return [
+        1.0 / (spread[c] * math.sqrt(kinds[(c, _kind(p))]))
+        for c, p in zip(cities, paths)
+    ]
 
 
 def make_optimizer(model):

@@ -1,8 +1,13 @@
-# Track A change 5: change 4 (drawing every city equally often) measured 0.5032
-# against 0.5038 for the curated selection with the starter recipe, so it is
-# reverted and the sampling is the starter's again. The one change now is
-# BATCH_SIZE 32 instead of 64. The budget is 250,000 photos either way, so the
-# same photos are seen, but 32 means 7,812 steps instead of 3,906: the weights
-# are updated twice as often. The training loss was still falling at the end of
-# the 39-minute run (1.428 -> 0.767), so the model had not finished learning.
-python src/official.py --tag batch32
+# Track A change 6: batch 32 measured 0.4945 against 0.5038, so a bigger batch
+# is not the answer either, and the recipe is back to the starter's batch of 64.
+# The change now is how the photos are drawn (sample_weights in recipe.py): the
+# five cities equally often as before, and inside a city the three kinds of
+# photo (commons, youtube, osv5m) more evenly than they occur. The leaderboard
+# says Busan 0.19 and Taipei 0.22 while our own validation photos give 0.40 and
+# 0.54, and Busan has no osv5m photo at all while Tokyo has 1,916, so the kind
+# of photo alone may be telling the model more about the city than the city.
+# This run trains the recipe on Colab before the release, and then draws the
+# suspect sheets from that model: the photos it was most sure about and got
+# wrong, for the second round of looking at photos.
+python src/official.py --tag srcbal
+python src/curate.py suspects results/srcbal_seed0/model.onnx --every 4
