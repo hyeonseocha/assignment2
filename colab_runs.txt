@@ -1,11 +1,9 @@
-# Step 7, Track A: the recipe is the starter recipe again, unchanged (mixup and
-# no_flip measured worse on the leaderboard: 0.389 against 0.401), so the only
-# thing that is different from the starter recipe is track_a/selection.csv, the
-# photos: the ones the model was least sure of, looked at on the suspects
-# sheets, that cannot be told apart by city, are dropped (track_a/dropped.csv).
-python src/official.py --tag curated
-# Track B change 2: the same MobileNetV3-Large at 320, which scored 0.5394 in 4
-# epochs and was still improving (training loss 1.291 -> 0.751), so only the
-# number of epochs changes, 4 -> 10.
-python src/train_b.py --tag b_mnv3_320_e10 --model mobilenet_v3_large --size 320 --epochs 10 --submit
-python src/check_submission.py --no-val
+# Track A change 4: the recipe is the starter recipe again, with one change.
+# The score is the accuracy in each city averaged over the five cities, so each
+# city is worth a fifth of the score, but the photos are not: Tokyo has 13,310
+# of them and Busan 5,174, so drawn in proportion Tokyo comes up nearly three
+# times as often as Busan. sample_weights now gives each photo 1/(number of
+# photos of its city), so every city comes up equally often: Busan 1.7 times as
+# often as now, Tokyo 0.7 times. Selection is the curated one from track-a-3
+# (0.5038 here, 0.395 on the leaderboard, against the starter 0.401).
+python src/official.py --tag balanced

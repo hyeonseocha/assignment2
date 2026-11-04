@@ -14,9 +14,15 @@ What you cannot change, because official.py decides it:
   - the image size the model sees, 224 x 224
   - mixed precision (float16), and the seed
 
-This is the recipe the starter code came with. It is the baseline on the
-leaderboard.
+This is the recipe the starter code came with, with one change: the photos
+are drawn so that every city comes up equally often (sample_weights below).
+The score is the accuracy in each city averaged over the five cities, so every
+city is worth a fifth, but the photos are not: Tokyo has 13,310 and Busan
+5,174, so drawn in proportion Tokyo comes up nearly three times as often as
+Busan. This makes the two match.
 """
+
+import collections
 
 import torch
 import torch.nn.functional as F
@@ -47,7 +53,8 @@ def sample_weights(cities, paths):
     is drawn twice as often as one with weight 1. Return None to go through
     the selection in a new random order each time, every photo once per round.
     """
-    return None
+    counts = collections.Counter(cities)
+    return [1.0 / counts[c] for c in cities]
 
 
 def make_optimizer(model):
