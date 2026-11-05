@@ -21,14 +21,19 @@ fifth, but the photos are not: Tokyo has 13,310 of them and Busan 5,174, so
 drawn in proportion Tokyo comes up nearly three times as often as Busan. The
 first step is that every city is now drawn equally often. The second step is
 that, inside a city, the three kinds of photo (commons, youtube, osv5m) are
-drawn more evenly than they occur. Busan has no osv5m photo at all and Seoul
-only 320, while Tokyo has 1,916, so the kind of photo alone says a lot about
-the city, and the leaderboard photos are not mixed the same way: there Busan
-and Taipei are close to guessing (0.19 and 0.22) while on our own validation
-photos they are 0.40 and 0.54. The second step is done by halves, one over the
-square root of the count: drawing Seoul's 320 street-view photos a third of the
-time would repeat each of them 52 times in 250,000 draws, while by halves they
-come up about 4.6 times as often as Seoul's commons photos instead of 21 times.
+drawn more evenly than they occur, because the photos the grader scores are not
+mixed like the photos we train on: the leaderboard photos are all frames of
+YouTube walking and driving videos, the final photos are street photos taken
+with a phone, and two thirds of our own photos are commons. On top of that the
+kind of photo says a lot about the city (Busan has no osv5m photo at all, Seoul
+320 and Tokyo 1,916), so a model can learn "commons means Tokyo, osv5m means
+Osaka", look good on our own photos, and still miss the leaderboard: there
+Busan and Taipei are close to guessing (0.19 and 0.22) while on our own
+validation photos they are 0.40 and 0.54. The second step is done by halves,
+one over the square root of the count: drawing Seoul's 320 street-view photos a
+third of the time would repeat each of them 52 times in 250,000 draws, while by
+halves they come up about 4.6 times as often as Seoul's commons photos instead
+of 21 times.
 """
 
 import collections

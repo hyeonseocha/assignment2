@@ -2,10 +2,15 @@
 # is not the answer either, and the recipe is back to the starter's batch of 64.
 # The change now is how the photos are drawn (sample_weights in recipe.py): the
 # five cities equally often as before, and inside a city the three kinds of
-# photo (commons, youtube, osv5m) more evenly than they occur. The leaderboard
-# says Busan 0.19 and Taipei 0.22 while our own validation photos give 0.40 and
-# 0.54, and Busan has no osv5m photo at all while Tokyo has 1,916, so the kind
-# of photo alone may be telling the model more about the city than the city.
+# photo (commons, youtube, osv5m) more evenly than they occur. The reason is
+# that the grader scores kinds of photo we barely train on: the leaderboard is
+# all YouTube walking and driving frames and the final photos are taken with a
+# phone, while two thirds of our photos are commons. Busan has no osv5m photo
+# at all and Seoul 320 against Tokyo's 1,916, so the kind of photo alone tells
+# the model a lot about the city, and it shows: the leaderboard has Busan 0.19
+# and Taipei 0.22 where our own validation photos give 0.40 and 0.54.
+# The last release with balanced city sampling scored 0.407 on the leaderboard
+# (Busan 0.25, Taipei 0.26, Tokyo 0.65), the best so far.
 # This run trains the recipe on Colab before the release, and then draws the
 # suspect sheets from that model: the photos it was most sure about and got
 # wrong, for the second round of looking at photos.
