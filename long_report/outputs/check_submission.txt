@@ -1,0 +1,12 @@
+C:\Users\sk408\Documents\assignment2\submission\model.onnx: 16.8 MB, 4.20 million parameters, 0.44 billion multiply-adds per 320 x 320 photo
+  limits: 12 million parameters, 2.0 billion multiply-adds
+  format and limits: OK
+
+C:\Users\sk408\Documents\assignment2\data\starter\val: score 0.559 on 12077 photos (236s)
+  seoul 0.612, busan 0.475, tokyo 0.677, osaka 0.437, taipei 0.593
+  confusion (rows: true city, columns: answer):
+    seoul    1491   213   417   123   191
+    busan     450   660   121    68    91
+    tokyo     432    67  2629   511   242
+    osaka     230    60   764   930   144
+    taipei    355    54   390   113  1331

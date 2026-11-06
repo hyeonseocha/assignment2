@@ -16,13 +16,15 @@
 \usepackage{mas1004}
 
 \reporttitle{Assignment 2: Long report}
-\studentname{Your name}
-\studentid{Your student ID}
+\studentname{차현서}
+\studentid{20231120}
 
 \begin{document}
 \makeheader
 
-\fillin{Your leaderboard nickname, and the tags of your last Track A and Track B releases.}
+리더보드 별명: \texttt{cityhunter}. 마지막 릴리스는 Track A \texttt{track-a-4}
+(balanced sampling for the weak cities), Track B \texttt{track-b-3}
+(mobilenet\_v3\_large at 320, 10 epochs)이다.
 
 % The sections below are a suggestion. Change, merge or add sections as you
 % like; README.md, "The long report", says what a reader should be able to see.
@@ -35,39 +37,169 @@
 \toprule
 tag & what changed from the run before & validation \\
 \midrule
-\multicolumn{3}{l}{\fillin{one row per recipe, with the numbers from experiments.csv}} \\
+baseline (seed 0) & 변경 없음: 스타터 레시피 그대로 & 0.4965 \\
+baseline (seed 1) & 변경 없음: 스타터 레시피 그대로 & 0.4913 \\
+wide\_crop (seed 0) & 학습 사진을 잘라내는 범위를 0.35에서 0.6으로 넓혀서, 사진의 최소 60\%가 남게 했다. 다른 것은 하나도 그대로. & 0.4898 \\
+no\_flip (seed 0) & 크롭은 starter의 0.35로 되돌리고, 좌우반전(RandomHorizontalFlip)만 없앴다. 다른 것은 하나도 그대로. & 0.4934 \\
+mixup (seed 0) & mix에서 배치 안의 사진 두 장을 섞고(alpha 0.2), 라벨도 섞인 비율만큼 확률로 바꿨다. 크롭 0.35와 좌우반전 없음은 no\_flip 그대로. & 0.4881 \\
+curated (seed 0) & recipe는 스타터 그대로 되돌리고, 바꾸는 것은 사진 하나로 두었다. 내가 직접 본 suspects 시트에서 도시 구분이 안 되는 사진 143장을 빼서 44,248 → 44,105장. & 0.5038 \\
+balanced (seed 0) & 사진·augmentation은 curated 그대로 두고 \texttt{sample\_weights} 하나만 바꿨다. 사진마다 $1/(\text{도시 사진 수})$를 줘서 다섯 도시를 20\%씩 뽑았다. & 0.5032 \\
+batch32 (seed 0) & 도시 균등 샘플링을 취소하고 샘플링은 스타터로 되돌린 뒤, \texttt{BATCH\_SIZE}만 64 → 32로. 예산 250,000장은 그대로라 step만 두 배(3,906 → 7,812). & 0.4945 \\
+srcbal (seed 0) & 배치 64·학습률은 balanced 그대로이고 \texttt{sample\_weights}를 ``도시 균등''에서 ``도시 × 사진 출처 균등''으로. youtube 27.8→33.9\%, osv5m 5.9→13.1\%, commons 66.3→53.0\%. & 0.4975 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\fillin{What you tried, why, and what you think each result means.}
+레시피 하나를 바꿀 때마다 같은 사진·같은 seed 0으로 재서 바로 앞 run과 비교했다.
 
-\fillin{Your final recipe and selection, and their leaderboard score next to
-their validation score.}
+스타터 레시피를 seed 0과 1로 두 번 돌려 0.4965와 0.4913을 얻었다. 같은 레시피인데
+0.005가 벌어졌고, 도쿄와 오사카의 점수는 seed에 따라 0.03씩 서로 뒤집혔다. 그래서
+이 뒤로는 \textbf{전체 점수가 0.015 이상 오르거나, 부산·오사카처럼 약한 도시가 0.03
+이상 오르지 않으면} 개선이라고 부르지 않기로 정했다.
+
+\begin{itemize}
+\item \textbf{wide\_crop} (0.4898): 채점기가 줌을 하지 않는다는 것을 알고, 0.35
+  크롭이 사진이 무엇인지 알려주는 배경을 너무 많이 잘라낸다고 생각해 0.6으로 넓혔다.
+  결과는 개선이 아니라 \emph{이동}이었다. 오사카가 0.336 → 0.381로 오른 만큼 도쿄가
+  0.647 → 0.596으로 떨어졌다. 한 도시의 희생을 동반한 결과는 채택하지 않는다는
+  판단 기준이 여기서 생겼다.
+\item \textbf{no\_flip} (0.4934): 간판 글자와 통행 방향이 도시를 가르는 단서라고 보고
+  좌우반전을 없앴다. 학습 손실이 더 낮아졌는데도 검증 점수는 그대로였으므로, 모델이
+  학습 사진을 더 잘 외우는 쪽으로 간 것으로 봤다.
+\item \textbf{mixup} (0.4881): 위의 과적합을 regularization으로 막아보려고 배치 안의
+  두 사진과 라벨을 섞었다. 학습 손실이 0.96까지 올라 제 역할은 했는데 점수는
+  내려갔다. 그래서 병목은 과적합이 아니라 \emph{사진 자체의 애매함}이라고 판단했고,
+  다음부터는 레시피가 아니라 사진을 만지기로 했다.
+\item \textbf{curated} (0.5038, seed 0): 레시피를 스타터로 되돌리고 사진만 바꿨다.
+  내가 직접 본 시트에서 도시 구분이 안 되는 사진 143장을 빼서 44,105장으로 학습했다.
+  seed 0에서는 +0.0073이었지만, 보드가 3-seed 평균으로 재니 0.494로 스타터 0.501보다
+  낮았다. \textbf{seed 하나로 얻은 +0.007은 개선이 아니라 seed 운}이라는 것을 여기서
+  배웠다.
+\item \textbf{balanced} (0.5032): 점수는 다섯 도시 평균인데 사진은 도쿄 30.2\% · 부산
+  11.7\%로 기울어져 있어서, 사진마다 $1/(\text{그 도시 사진 수})$를 줘서 도시를 20\%씩
+  똑같이 뽑았다. 부산 0.404 → 0.437, 오사카 0.369 → 0.446, 타이베이 0.535 → 0.566으로
+  셋이 올랐지만 서울 0.623 → 0.538, 도쿄 0.588 → 0.529로 두 도시가 그만큼 내려 총점은
+  0.5032로 제자리였다. 도시를 더 잘 구분하게 된 것이 아니라 \emph{결정 경계가 약한
+  도시들 쪽으로 밀린} 결과로 봤다.
+\item \textbf{batch32} (0.4945): 앞 run의 학습 손실이 아직 내려가고 있어서, 같은 사진을
+  배치 32로 두 배 더 자주 넣어봤다. 다섯 도시가 전부 내리거나 제자리였고(서울 −0.016,
+  도쿄 −0.027), 마지막 학습 손실도 0.810으로 배치 64의 0.767보다 높았다. 부족한 것은
+  학습 횟수가 아니라는 뜻이므로 배치는 64로 되돌렸다.
+\item \textbf{srcbal} (0.4975): 1 November에 적어 둔 ``도시는 찍은 카메라로도
+  구분된다''는 문제(도쿄 osv5m 1,916장, 부산 0장, 서울 youtube 37\%·타이베이 14\%)를
+  줄이려고, 도시는 20\%로 두되 도시 안에서 사진 출처(commons/youtube/osv5m)를 고르게
+  뽑았다. 부산 0.4576과 타이베이 0.5934로 \emph{둘 다 지금까지 가장 높았지만}, 서울
+  0.5191 · 도쿄 0.4921 · 오사카 0.4253이 내려 총점은 0.0057 떨어졌다. balanced와 같은
+  경계선 이동이 한 번 더 일어난 셈이라, 같은 seed 하나로는 개선이라고 말할 수 없어서
+  릴리스하지 않았다.
+\end{itemize}
+
+\textbf{최종 레시피와 선택.} 스타터 레시피(그대로) + \texttt{selection.csv} 44,105장 +
+도시 균등 샘플링이다(\texttt{track-a-4}). 검증 0.5032 (seed 0)에 대해 리더보드
+\textbf{0.407} (CI 0.401--0.413, 스타터 0.401). 즉 내 검증 사진에서의 0.005 차이는 보드
+CI 안에 들어가고, 보드가 3-seed 평균으로 잰 validation도 0.502로 내 seed 0과 거의 같았다.
+보드와 검증의 도시별 움직임도 같은 방향이었다(부산 +0.06 / 오사카 +0.03 / 타이베이
++0.04, 서울 −0.02 / 도쿄 −0.07). 두 사진 묶음이 서로 다른데 같은 방향으로 움직였으므로
+이 이동은 우연이 아니라 레시피가 실제로 일으킨 것으로 본다.
 
 % ---------------------------------------------------------------------------
 \section*{Decisions you made from photos}
 
 \picturefile{figures/mistakes_baseline_seed0_busan_00.png}
 
-\fillin{What you looked at, what you saw in common, and the rule you wrote
-before acting.}
+학습을 시작하기 전에 \texttt{curate.py look}으로 도시별 사진 시트를 직접 열어 보고
+(\texttt{look\_seoul\_00}, \texttt{look\_busan\_00}, \texttt{look\_tokyo\_00} 등), 도시를
+가르는 것이 무엇인지 먼저 적었다. 서울은 한국어 간판과 ``Seoul'' 표지, 따릉이, 우측
+통행, 한옥과 높은 빌딩, 뒤에 보이는 산이 눈에 띄었다. 도쿄는 회색이 많고, 후지산이
+보이고, 길에 주차된 차나 자전거가 없고, 좌측 통행이며 높은 건물이 많았다. 특히
+\emph{도쿄·오사카는 좌측 통행, 서울·부산은 우측 통행}이라는 차이가 인상적이어서,
+사진을 좌우로 뒤집으면 도시를 가르는 단서가 사라질 수도 있겠다고 생각했다(이 생각이
+\S1의 no\_flip 실험이 되었다).
 
-\fillin{What you changed (the output of curate.py count, or the photos you
-added), and the scores before and after.}
+그다음 \texttt{curate.py mistakes}로 모델이 확신했는데 틀린 사진 48장씩을 도시마다
+보았다. 공통점은 두 가지였다. (1) 그 도시에만 있는 것이 보이면 맞히는데, 어디에나 있는
+도로·낮은 건물(7층 이하)·인도 뷰만 보이면 구분을 못한다. 서울↔부산이 특히 그렇고
+도쿄↔오사카도 마찬가지이며, 타이베이는 그냥 번화가 길거리면 헷갈린다. (2) 길 전체가
+아니라 일부만 크게 찍은 확대 사진도 구분을 못한다.
 
-\fillin{The requests you gave your agent for these decisions.}
+\textbf{행동하기 전에 쓴 규칙.} ``길 사진이 아닌 것 — 부산 시트의 앵무새·차량 전시
+사진, 오사카 시트의 꽃·인형·마네킹 — 은 학습에서 뺀다.'' 즉 \emph{도시의 거리 모습을
+보여주지 않는 사진}만 빼고, 판단이 어려운 거리 사진은 건드리지 않는다는 규칙이었다.
+
+\textbf{바꾼 것과 그 결과.} \texttt{curate.py suspects}로 44,248장을 훑어 만든 20장의
+시트를 직접 보고 143장을 뺐다. 뺀 이유는 \texttt{track\_a/dropped.csv}에 사진마다
+적어 두었다(식물 16, 실내 15, 음식 10, 차 9, 동물 4 등). 그 결과 사진 수는
+44,248장에서 44,105장이 되었고(\texttt{outputs/curate\_count.txt}),
+\begin{center}\small
+\begin{tabular}{lrrr}
+\toprule
+& 검증 (seed 0) & 보드 (3-seed) & 보드 validation \\
+\midrule
+빼기 전 (baseline) & 0.4965 & 0.401 & 0.501 \\
+뺀 뒤 (curated) & \textbf{0.5038} & 0.395 & 0.494 \\
+\bottomrule
+\end{tabular}
+\end{center}
+내 검증 사진에서는 +0.0073으로 올랐지만 보드에서는 0.006 내려갔다. 이후 3-seed 평균이
+공개되면서 curated가 실제로는 손해였다는 것이 확인되었다. 그래도 \emph{레시피를 만지는
+대신 내가 본 사진을 근거로 데이터를 고친다}는 이 방향은 유지했다. 뒤의 srcbal 시트에서도
+같은 방식으로 큐레이션 2차를 할 계획이고, balanced의 경계선 이동도 이 방향을 더 밀어야
+한다는 신호로 읽었다.
+
+사진 수와 출처, 그리고 내가 하나씩 적어 둔 뺀 이유는 이 출력 그대로다:
+
+\outputfile{outputs/curate_count.txt}
+
+\textbf{내가 에이전트에게 한 요청.} (1) ``도시별 학습 사진을 좀 보여줘'' — 도시마다
+시트를 열어 달라고 했고, 그 시트를 보면서 도시별 특징을 내 말로 적었다.
+(2) ``내가 시트에서 찍은 번호의 사진만, 내가 적은 이유와 함께 빼줘'' — 어떤 사진을 뺄지는
+에이전트가 고르지 않게 했고, 뺀 이유도 내가 말한 그대로 \texttt{track\_a/dropped.csv}에
+남겼다. (3) ``스타터 레시피 그대로 두고 사진만 바꿔서 학습해줘'' — 레시피는 건드리지
+않으므로 큐레이션의 효과만 따로 잴 수 있었다.
+
+\sidebyside{figures/look_busan_00.png}{부산 학습 사진(내가 직접 본 시트).
+\texttt{curate.py look busan --every 20}}{figures/look_tokyo_00.png}{도쿄 학습 사진.
+도쿄는 osv5m(차량 카메라) 사진이 1,916장, 부산은 0장이라 사진 종류만으로도 두 도시가
+구별된다.}
+
+\begin{center}
+\picturefile[0.85\linewidth]{figures/suspects_srcbal_seed0_busan_00.png}
+\captionof{figure}{srcbal 모델이 확신했는데 틀린 부산 사진. 큐레이션 2차에서 같은 규칙
+(거리 모습을 보여주지 않는 사진만 뺀다)으로 볼 시트다.}
+\end{center}
 
 % ---------------------------------------------------------------------------
 \section*{Track B}
 
-\fillin{What you tried, one step at a time, and the validation score after
-each step.}
+\begin{center}\footnotesize
+\begin{tabular}{lp{0.6\linewidth}r}
+\toprule
+tag & what changed from the run before & validation \\
+\midrule
+trackb\_base & \texttt{train\_b.py} 기본값 그대로: ResNet18 224px, 4 epoch, \texttt{data/starter/train} 전체 & 0.4861 \\
+b\_mnv3\_320 & ResNet18 224px → MobileNetV3-Large 320px (사진·epoch·학습률·배치 동일) & 0.5394 \\
+b\_mnv3\_320\_e10 & 같은 모델·사진에서 epoch만 4 → 10 & \textbf{0.5588} \\
+\bottomrule
+\end{tabular}
+\end{center}
 
-\fillin{How you collected any extra photos.}
+Track B는 Track A와 달리 ``한도를 넘지 않으면서 더 많이 볼 수 있는 모델''을 찾는 문제로
+봤다. ResNet18은 224px에서 이미 11.17M 파라미터로 12M 한도에 가까워서 사진을 더 크게
+볼 여지가 없었다. 그래서 파라미터를 아끼는 MobileNetV3-Large로 바꿔 320px을 보여줬더니
+0.4861 → 0.5394로 다섯 도시가 전부 올랐다(서울 +0.043, 부산 +0.058, 도쿄 +0.075, 오사카
++0.051, 타이베이 +0.040). 학습 손실도 1.29 → 0.75로 아직 내려가는 중이었으므로 epoch를
+4 → 10으로 늘렸고 0.5588이 되었다(부산 +0.045, 오사카 +0.026, 타이베이 +0.025, 도쿄
++0.011, 서울만 −0.010). 여전히 오사카를 도쿄로 764장 틀리는 것이 가장 큰 혼동이고,
+Track A의 balanced·srcbal에서 본 ``경계선 이동''도 같은 모양으로 나타난다.
 
-\fillin{Your validation score next to your leaderboard score, and why they
-might disagree.}
+\textbf{추가 사진은 없다.} \texttt{data/mine}을 쓰지 않았고 \texttt{data/starter/train}만
+학습에 썼다(검증 사진 \texttt{data/starter/val}은 학습에서 제외).
+
+\textbf{검증과 리더보드.} 검증 0.559에 대해 리더보드 \textbf{0.439}
+(\texttt{track-b-3}). 차이가 0.12나 나는 이유는 (1) 검증 사진의 66\%가 Wikimedia
+Commons 사진인데 리더보드 사진은 100\% YouTube 산책·주행 영상 프레임이고, (2) 최종
+순위를 정하는 사진은 또 다른 묶음인 휴대폰 거리 사진이기 때문이라고 본다. 실제로
+도시별로 보면 카메라가 다른 두 묶음이 같은 방향으로 움직이지 않는다.
 
 \subsection*{Your submission, as the grader sees it}
 \outputfile{outputs/check_submission.txt}
@@ -75,10 +207,36 @@ might disagree.}
 % ---------------------------------------------------------------------------
 \section*{What made the difference}
 
-\fillin{Which change helped most and which least, in both tracks, with your
-numbers.}
+\textbf{가장 크게 도움 된 것: Track B의 해상도·모델 교체.} ResNet18 224px에서
+MobileNetV3-Large 320px로 바꾼 것 하나가 0.4861 → 0.5394 (+0.053)였고, 같은 모델에서
+epoch만 늘린 것이 +0.019였다. Track A의 어떤 레시피 변경도 이만한 폭을 내지 못했다.
 
-\fillin{What you would do next with one more week.}
+\textbf{가장 도움이 안 된 것: Track A의 레시피 변경 전부.} wide\_crop −0.007, no\_flip
+−0.003, mixup −0.008, batch32 −0.009로 모두 seed 노이즈(±0.005) 안이거나 그보다 나빴고,
+좋아 보인 두 개(wide\_crop의 오사카, mixup의 도쿄)는 다른 도시가 그만큼 떨어져 상쇄됐다.
+반면 Track A에서 점수를 실제로 움직인 것은 레시피가 아니라 \emph{어느 도시의 사진을 얼마나
+넣는가}였다: 도시 균등 샘플링으로 부산 0.404 → 0.437, 오사카 0.369 → 0.446, 타이베이
+0.535 → 0.566(총점은 제자리), 사진 출처까지 균등하게 한 srcbal로 부산 0.4576 · 타이베이
+0.5934(총점 −0.006). 즉 \emph{이 다섯 도시를 가르는 정보가 사진 안에 충분하지 않고,
+모델은 도시별 사진 수와 촬영 기기 같은 지름길을 쓴다}는 것이 이번 과제에서 얻은 가장 큰
+결론이다.
+
+\textbf{한 주가 더 있다면.} 순서는 \emph{큐레이션 2차 → 3-seed로 판단 → Track A 마무리}로
+잡았다. (1) srcbal 모델로 만든 \texttt{suspects} 시트 5장을 같은 규칙(거리 모습을
+보여주지 않는 사진만 뺀다)으로 직접 보고, 2차로 뺄 사진을 고른다. 1차에서 143장을 뺀
+효과가 3-seed에서 손해로 드러났으므로, 이번에는 빼는 장수를 줄이고 대신 \emph{같은
+장면이 여러 장 반복되는 묶음}(한 영상의 프레임)을 줄이는 쪽도 함께 시도해 볼 생각이다.
+(2) 레시피를 하나 바꿀 때마다 seed 0·1·2로 세 번 재서, 보드가 재는 방식과 같은 조건에서
+판단한다. 지금까지 seed 0 하나로 내린 결론 두 개(curated +0.007, balanced 총점 제자리)는
+모두 3-seed에서 의미가 달라졌기 때문이다. (3) Track A의 남은 여지는 ``더 많이 학습''이
+아니라 ``무엇을 보여줄 것인가''에 있다고 보므로, 최종 사진 묶음인 \emph{휴대폰 거리
+사진}과 비슷한 사진을 \texttt{data/mine}에 직접 모아 학습에 넣어보고 싶다. Track B는
+MobileNetV3-Large 320px에서 epoch를 더 늘리거나(학습 손실이 아직 내려가는 중이었다)
+한도(2.0B multiply-adds) 안에서 384px을 시도해 보는 것이 다음 순서다.
+
+\textbf{다음에 할 것(LOG.md에서).} srcbal 모델의 suspects 시트로 큐레이션 2차를 하고,
+wide\_crop처럼 한 도시가 오르고 다른 도시가 그만큼 떨어지는 결과는 개선으로 보지 않으며,
+전체 점수 0.015 이상 상승이면서 어느 도시도 크게 떨어지지 않았을 때만 채택한다.
 
 % ---------------------------------------------------------------------------
 \section*{All runs}
