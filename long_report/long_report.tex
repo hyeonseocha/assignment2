@@ -105,7 +105,11 @@ CI 안에 들어가고, 보드가 3-seed 평균으로 잰 validation도 0.502로
 % ---------------------------------------------------------------------------
 \section*{Decisions you made from photos}
 
+\begin{center}
 \picturefile{figures/mistakes_baseline_seed0_busan_00.png}
+\captionof{figure}{스타터 레시피 모델이 부산 사진이라고 확신했지만 틀린 48장
+(\texttt{curate.py mistakes}). 이런 시트 다섯 장을 보고 아래의 공통점을 적었다.}
+\end{center}
 
 학습을 시작하기 전에 \texttt{curate.py look}으로 도시별 사진 시트를 직접 열어 보고
 (\texttt{look\_seoul\_00}, \texttt{look\_busan\_00}, \texttt{look\_tokyo\_00} 등), 도시를
@@ -146,7 +150,7 @@ CI 안에 들어가고, 보드가 3-seed 평균으로 잰 validation도 0.502로
 같은 방식으로 큐레이션 2차를 할 계획이고, balanced의 경계선 이동도 이 방향을 더 밀어야
 한다는 신호로 읽었다.
 
-사진 수와 출처, 그리고 내가 하나씩 적어 둔 뺀 이유는 이 출력 그대로다:
+사진 수와 출처, 그리고 내가 하나씩 적어 둔, 사진을 뺀 이유는 이 출력 그대로다:
 
 \outputfile{outputs/curate_count.txt}
 
